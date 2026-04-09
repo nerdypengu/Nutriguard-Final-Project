@@ -40,3 +40,30 @@ KEYCLOAK_SERVER_URL = os.getenv("KEYCLOAK_SERVER_URL", "http://localhost:8080")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "nutriguard")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "nutriguard-backend")
 KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET", "")
+
+
+# ==========================================
+# VALIDATION: Check for required environment variables
+# ==========================================
+def validate_required_env_vars():
+    """Validate that all required environment variables are set."""
+    required_vars = {
+        "SUPABASE_URL": SUPABASE_URL,
+        "SUPABASE_KEY": SUPABASE_KEY,
+        "JWT_SECRET_KEY": JWT_SECRET_KEY,
+    }
+    
+    missing_vars = [var for var, value in required_vars.items() if not value]
+    
+    if missing_vars:
+        error_msg = (
+            f"❌ DEPLOYMENT FAILED: Missing required environment variables:\n"
+            f"   {', '.join(missing_vars)}\n\n"
+            f"For Vercel deployment, add these to:\n"
+            f"   Project Settings → Environment Variables\n\n"
+            f"See .env.example for more details."
+        )
+        raise RuntimeError(error_msg)
+
+# Validate on import (will catch errors at function startup on Vercel)
+validate_required_env_vars()
