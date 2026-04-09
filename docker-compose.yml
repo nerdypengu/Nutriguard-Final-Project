@@ -1,0 +1,64 @@
+networks:
+  nutriguard-net:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  open-webui_data:
+  n8n_data:
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - nutriguard-net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # 2. The AI Dashboard (Open WebUI)
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434 
+    volumes:
+      - open-webui_data:/app/backend/data
+    networks:
+      - nutriguard-net
+    depends_on:
+      - ollama
+
+  # 3. The Orchestrator (n8n)
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      # This prevents n8n from demanding user authentication for local dev
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - nutriguard-net
+    depends_on:
+      - ollama
