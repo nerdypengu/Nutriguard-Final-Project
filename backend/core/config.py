@@ -56,14 +56,18 @@ def validate_required_env_vars():
     missing_vars = [var for var, value in required_vars.items() if not value]
     
     if missing_vars:
+        import sys
         error_msg = (
-            f"❌ DEPLOYMENT FAILED: Missing required environment variables:\n"
-            f"   {', '.join(missing_vars)}\n\n"
-            f"For Vercel deployment, add these to:\n"
-            f"   Project Settings → Environment Variables\n\n"
-            f"See .env.example for more details."
+            f"⚠️  WARNING: Missing environment variables: {', '.join(missing_vars)}\n"
+            f"Some features may not work correctly.\n"
+            f"For Vercel deployment, add these to: Project Settings → Environment Variables"
         )
-        raise RuntimeError(error_msg)
+        print(error_msg, file=sys.stderr)
+        return False
+    return True
 
-# Validate on import (will catch errors at function startup on Vercel)
-validate_required_env_vars()
+# Validate on import but don't crash - log warning instead
+try:
+    validate_required_env_vars()
+except Exception as e:
+    print(f"Config validation error: {e}")

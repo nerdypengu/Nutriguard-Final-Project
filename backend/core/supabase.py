@@ -62,8 +62,9 @@ def get_supabase_service_client() -> Client:
     
     if _supabase_service_client is None:
         if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-            logger.warning("⚠ SUPABASE_SERVICE_ROLE_KEY not set - service client unavailable")
-            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment variables")
+            error_msg = "SUPABASE_SERVICE_ROLE_KEY not set - service client unavailable"
+            logger.warning(f"⚠ {error_msg}")
+            raise ValueError(f"SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment variables. {error_msg}")
         
         try:
             _supabase_service_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
