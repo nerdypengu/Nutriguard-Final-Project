@@ -1,54 +1,88 @@
 """
 Redis client initialization and utilities for NutriGuard Backend.
 Used for caching, rate limiting, and session management.
+Includes fallback for production environments without Redis (e.g., Vercel).
 """
 import redis.asyncio as redis
 from typing import Optional
 from core.config import REDIS_URL
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Redis client instance (singleton)
 _redis_client: Optional[redis.Redis] = None
+_redis_available: bool = False
+
+# In-memory fallback cache (basic, no TTL enforcement)
+_fallback_cache: dict = {}
 
 
-async def get_redis_client() -> redis.Redis:
+async def get_redis_client() -> Optional[redis.Redis]:
     """
-    Get or create Redis client instance.
+    Get or create Redis client instance with fallback.
     
     Returns:
-        redis.Redis: Async Redis client
+        redis.Redis: Async Redis client, or None if unavailable
     """
-    global _redis_client
+    global _redis_client, _redis_available
     
-    if _redis_client is None:
-        _redis_client = await redis.from_url(REDIS_URL, encoding="utf8", decode_responses=True)
+    if _redis_client is None and not _redis_available:
+        try:
+            _redis_client = await redis.from_url(REDIS_URL, encoding="utf8", decode_responses=True)
+            # Test connection
+            await _redis_client.ping()
+            _redis_available = True
+            logger.info("✓ Redis connection successful")
+        except Exception as e:
+            logger.warning(f"✗ Redis unavailable, using fallback cache: {e}")
+            _redis_available = False
+            _redis_client = None
     
-    return _redis_client
+    return _redis_client if _redis_available else None
 
 
 async def close_redis():
-    """Close Redis connection"""
-    global _redis_client
+    """Close Redis connection safely"""
+    global _redis_client, _redis_available
     if _redis_client:
-        await _redis_client.close()
-        _redis_client = None
+        try:
+            await _redis_client.close()
+        except Exception as e:
+            logger.error(f"Error closing Redis: {e}")
+        finally:
+            _redis_client = None
+            _redis_available = False
 
 
-async def set_cache(key: str, value: str, ttl: int = 3600) -> None:
+async def set_cache(key: str, value: str, ttl: int = 3600) -> bool:
     """
-    Set a value in Redis cache with TTL.
+    Set a value in cache (Redis or fallback).
     
     Args:
         key (str): Cache key
         value (str): Value to cache (as JSON string)
         ttl (int): Time to live in seconds (default: 1 hour)
+        
+    Returns:
+        bool: True if set in Redis, False if using fallback
     """
-    client = await get_redis_client()
-    await client.setex(key, ttl, value)
+    try:
+        client = await get_redis_client()
+        if client:
+            await client.setex(key, ttl, value)
+            return True
+    except Exception as e:
+        logger.warning(f"Failed to set Redis cache for {key}: {e}")
+    
+    # Fallback to in-memory cache
+    _fallback_cache[key] = value
+    return False
 
 
 async def get_cache(key: str) -> Optional[str]:
     """
-    Get a value from Redis cache.
+    Get a value from cache (Redis or fallback).
     
     Args:
         key (str): Cache key
@@ -56,8 +90,17 @@ async def get_cache(key: str) -> Optional[str]:
     Returns:
         Optional[str]: Cached value or None if not found/expired
     """
-    client = await get_redis_client()
-    return await client.get(key)
+    try:
+        client = await get_redis_client()
+        if client:
+            value = await client.get(key)
+            if value is not None:
+                return value
+    except Exception as e:
+        logger.warning(f"Failed to get Redis cache for {key}: {e}")
+    
+    # Fallback to in-memory cache
+    return _fallback_cache.get(key)
 
 
 async def delete_cache(key: str) -> None:

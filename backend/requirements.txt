@@ -3,7 +3,7 @@
 # For local development with all features (including semantic search & embeddings):
 #   pip install -r requirements-dev.txt
 #
-# For production/Vercel (no heavy ML packages):
+# For production/Vercel (no heavy ML packages, no Redis):
 #   pip install -r requirements.txt
 
 fastapi==0.104.1
@@ -17,6 +17,5 @@ bcrypt>=3.2.0,<4.0.0
 python-multipart==0.0.6
 httpx==0.27.0
 requests==2.31.0
-redis==5.0.0
 slowapi==0.1.9
 python-keycloak==4.0.0

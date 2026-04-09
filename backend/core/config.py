@@ -18,10 +18,12 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-# Redis Configuration
+# Redis Configuration (Optional - Vercel/serverless won't have this)
+# When Redis is unavailable, the app uses in-memory fallback for caching and rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 REDIS_CACHE_TTL = int(os.getenv("REDIS_CACHE_TTL", "3600"))  # Default 1 hour
 REDIS_RATE_LIMIT_TTL = int(os.getenv("REDIS_RATE_LIMIT_TTL", "60"))  # Default 1 minute
+REDIS_OPTIONAL = os.getenv("REDIS_OPTIONAL", "true").lower() == "true"  # Default: Redis is optional
 
 # Bot Service Account Configuration
 BOT_API_KEY = os.getenv("BOT_API_KEY", "your-bot-api-key-change-in-production")

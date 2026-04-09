@@ -3,19 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from router.auth import router as auth_router
-from router.food import router as food_router
-from router.users import router as users_router
-from router.consumption_logs import router as consumption_logs_router
-from router.meal_plans import router as meal_plans_router
-from router.bot import router as bot_router
-from router.bot_food import router as bot_food_router
-from router.bot_meal_plans import router as bot_meal_plans_router
-from router.bot_logs import router as bot_logs_router
-from router.bot_users import router as bot_users_router
-from router.meal_processing import router as meal_processing_router
 from core.rate_limit import limiter
 from core.redis import close_redis
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="NutriGuard Backend API",
@@ -38,18 +32,30 @@ app.add_middleware(
 # Configure rate limiting middleware
 app.add_middleware(SlowAPIMiddleware)
 
-# Include routers
-app.include_router(auth_router)
-app.include_router(users_router)
-app.include_router(food_router)
-app.include_router(consumption_logs_router)
-app.include_router(meal_plans_router)
-app.include_router(bot_router)
-app.include_router(bot_food_router)
-app.include_router(bot_meal_plans_router)
-app.include_router(bot_logs_router)
-app.include_router(bot_users_router)
-app.include_router(meal_processing_router)
+# Include routers with error handling
+routers_modules = [
+    "router.auth",
+    "router.food",
+    "router.users",
+    "router.consumption_logs",
+    "router.meal_plans",
+    "router.bot",
+    "router.bot_food",
+    "router.bot_meal_plans",
+    "router.bot_logs",
+    "router.bot_users",
+    "router.meal_processing",
+]
+
+for module_path in routers_modules:
+    try:
+        module = __import__(module_path, fromlist=["router"])
+        app.include_router(module.router)
+        logger.info(f"✓ Loaded router: {module_path}")
+    except Exception as e:
+        logger.error(f"✗ Failed to load router {module_path}: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.get("/")
 async def root():
@@ -69,7 +75,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "message": "Server is running"}
 
 
 @app.on_event("shutdown")

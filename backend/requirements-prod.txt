@@ -1,6 +1,6 @@
-# Production requirements (lightweight - no heavy ML packages)
+# Production requirements (lightweight - for Vercel and production deployment)
 # This is identical to requirements.txt for safe Vercel/production deployment
-# Use this if you need to specify a production build explicitly
+# No heavy ML packages, no Redis (uses fallback in-memory cache)
 
 fastapi==0.104.1
 uvicorn==0.24.0
@@ -13,6 +13,5 @@ bcrypt>=3.2.0,<4.0.0
 python-multipart==0.0.6
 httpx==0.27.0
 requests==2.31.0
-redis==5.0.0
 slowapi==0.1.9
 python-keycloak==4.0.0
