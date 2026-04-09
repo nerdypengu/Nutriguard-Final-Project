@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pip install -r requirements.txt",
-  "rewrites": [
-    { "source": "/(.*)", "dest": "api/index.py" }
-  ]
-}

@@ -1,3 +1,0 @@
-# Only ignore dev requirements, keep production requirements.txt
-requirements-dev.txt
-requirements-prod.txt

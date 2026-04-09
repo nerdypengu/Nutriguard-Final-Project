@@ -6,8 +6,8 @@ from pathlib import Path
 # Add parent directory to path so we can import core and services
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.supabase import supabase_service_client, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-from services.embeddings import generate_embedding
+from backend.api.core.supabase import supabase_service_client, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+from backend.api.services.embeddings import generate_embedding
 
 # Debug: Check if credentials are loaded
 if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
