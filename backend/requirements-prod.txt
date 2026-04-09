@@ -1,3 +1,7 @@
+# Production requirements (lightweight - no heavy ML packages)
+# This is identical to requirements.txt for safe Vercel/production deployment
+# Use this if you need to specify a production build explicitly
+
 fastapi==0.104.1
 uvicorn==0.24.0
 supabase==2.5.0

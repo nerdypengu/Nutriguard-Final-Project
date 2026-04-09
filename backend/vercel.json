@@ -1,4 +1,19 @@
 {
-  "buildCommand": "pip install -r requirements-prod.txt",
-  "outputDirectory": "."
+  "buildCommand": "pip install -r requirements.txt",
+  "outputDirectory": ".",
+  "env": {
+    "PYTHONPATH": "/vercel/path0/backend"
+  },
+  "functions": {
+    "main.py": {
+      "runtime": "python3.11",
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "main.py"
+    }
+  ]
 }
