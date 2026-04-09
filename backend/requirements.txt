@@ -1,17 +1,4 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-supabase==2.5.0
-python-dotenv==1.0.0
-pydantic[email]==2.7.4
-sentence-transformers==2.7.0
-huggingface-hub>=0.19.0,<1.0
-numpy==1.24.3
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt>=3.2.0,<4.0.0
-python-multipart==0.0.6
-httpx==0.27.0
-requests==2.31.0
-redis==5.0.0
-slowapi==0.1.9
-python-keycloak==4.0.0
+# Use this file for local development with all features
+# For Vercel deployment, use: pip install -r requirements-prod.txt
+
+-r requirements-dev.txt
