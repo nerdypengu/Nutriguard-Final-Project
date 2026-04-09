@@ -14,38 +14,18 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Redis connection status early
-logger.info("Initializing Redis...")
-try:
-    from core.redis import get_redis_client
-    import asyncio
-    
-    async def test_redis():
-        client = await get_redis_client()
-        if client:
-            logger.info("✓ Redis is available")
-            return True
-        else:
-            logger.warning("⚠ Redis unavailable - using fallback cache")
-            return False
-    
-    # Try to test Redis async
-    try:
-        asyncio.run(test_redis())
-    except:
-        logger.warning("⚠ Redis connection test failed - API will use in-memory fallback")
-except Exception as e:
-    logger.warning(f"⚠ Redis initialization error: {e}")
+# Log that we're starting (without running async code at import time)
+logger.info("NutriGuard Backend initializing...")
 
 try:
     from main import app
 except Exception as e:
-    logger.error(f"Error importing main: {e}")
+    logger.error(f"✗ Fatal error importing main: {e}")
     import traceback
     traceback.print_exc()
     raise
 
-# Add a simple health check endpoint before main routers
+# Add a simple health check endpoint
 @app.get("/health")
 async def health_check():
     """Simple health check endpoint"""
