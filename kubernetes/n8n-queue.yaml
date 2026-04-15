@@ -1,0 +1,225 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: n8n-config
+  labels:
+    app: n8n
+data:
+  DB_TYPE: postgresdb
+  DB_POSTGRESDB_DATABASE: n8n
+  DB_POSTGRESDB_HOST: n8n-postgres
+  DB_POSTGRESDB_PORT: "5432"
+  DB_POSTGRESDB_USER: n8n
+  EXECUTIONS_MODE: queue
+  QUEUE_BULL_REDIS_HOST: redis
+  QUEUE_BULL_REDIS_PORT: "6379"
+  # Menggunakan Redis DB 1 agar tidak bentrok dengan FastAPI (opsional DB 0)
+  QUEUE_BULL_REDIS_DB: "1"
+  # EXECUTIONS_PROCESS=main memastikan proses n8n tidak men-spawn node.js 
+  # baru per task yang bisa menghabiskan RAM secara drastis
+  EXECUTIONS_PROCESS: main
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: n8n-secret
+  labels:
+    app: n8n
+stringData:
+  DB_POSTGRESDB_PASSWORD: "n8n_password_dev_only"
+  N8N_ENCRYPTION_KEY: "kalbe_final_project_secret_key"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-postgres
+  labels:
+    app: n8n-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-postgres
+  template:
+    metadata:
+      labels:
+        app: n8n-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: n8n-config
+              key: DB_POSTGRESDB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: n8n-secret
+              key: DB_POSTGRESDB_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: n8n-config
+              key: DB_POSTGRESDB_DATABASE
+        resources:
+          requests:
+            memory: "100Mi"
+          limits:
+            memory: "250Mi"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        hostPath:
+          path: /data/n8n-postgres
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-postgres
+  labels:
+    app: n8n-postgres
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: n8n-postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-main
+  labels:
+    app: n8n-main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-main
+  template:
+    metadata:
+      labels:
+        app: n8n-main
+    spec:
+      containers:
+      - name: n8n-main
+        image: docker.n8n.io/n8nio/n8n:latest
+        ports:
+        - containerPort: 5678
+        envFrom:
+        - configMapRef:
+            name: n8n-config
+        - secretRef:
+            name: n8n-secret
+        env:
+        - name: WEBHOOK_URL
+          value: "http://n8n-webhook:5678/"
+        resources:
+          requests:
+            memory: "200Mi"
+          limits:
+            memory: "400Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-main
+  labels:
+    app: n8n-main
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5678
+    targetPort: 5678
+  selector:
+    app: n8n-main
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-webhook
+  labels:
+    app: n8n-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-webhook
+  template:
+    metadata:
+      labels:
+        app: n8n-webhook
+    spec:
+      containers:
+      - name: n8n-webhook
+        image: docker.n8n.io/n8nio/n8n:latest
+        command: ["n8n", "webhook"]
+        ports:
+        - containerPort: 5678
+        envFrom:
+        - configMapRef:
+            name: n8n-config
+        - secretRef:
+            name: n8n-secret
+        env:
+        - name: WEBHOOK_URL
+          value: "http://n8n-webhook:5678/"
+        resources:
+          requests:
+            memory: "150Mi"
+          limits:
+            memory: "250Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-webhook
+  labels:
+    app: n8n-webhook
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5678
+    targetPort: 5678
+  selector:
+    app: n8n-webhook
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-worker
+  labels:
+    app: n8n-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-worker
+  template:
+    metadata:
+      labels:
+        app: n8n-worker
+    spec:
+      containers:
+      - name: n8n-worker
+        image: docker.n8n.io/n8nio/n8n:latest
+        command: ["n8n", "worker", "--concurrency=15"]
+        envFrom:
+        - configMapRef:
+            name: n8n-config
+        - secretRef:
+            name: n8n-secret
+        resources:
+          requests:
+            memory: "500Mi"
+          limits:
+            memory: "1536Mi"

@@ -1,12 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import date
 from uuid import uuid4
+from enum import Enum
 from core.supabase import supabase_service_client
+
+class MealType(str, Enum):
+    BREAKFAST = "BREAKFAST"
+    LUNCH = "LUNCH"
+    DINNER = "DINNER"
+    ADDITIONAL = "ADDITIONAL"
 
 class MealPlan(BaseModel):
     id: Optional[str] = None
     user_id: str
+    meal_type: MealType
     meal_name: str
     total_calories: float
     total_protein: float
@@ -16,6 +24,8 @@ class MealPlan(BaseModel):
     status: Optional[str] = "Planned"
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+
+    model_config = ConfigDict(use_enum_values=True)
 
 class PlanResponse(BaseModel):
     success: bool

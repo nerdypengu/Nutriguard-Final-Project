@@ -7,9 +7,15 @@ from core.rate_limit import limiter
 from core.redis import close_redis
 import logging
 
-# Set up logging
+# Set up logging with reduced verbosity for external libraries
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Reduce verbosity for external libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+logging.getLogger("supabase").setLevel(logging.WARNING)
 
 app = FastAPI(
     title="NutriGuard Backend API",

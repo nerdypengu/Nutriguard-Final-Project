@@ -5,13 +5,20 @@ Retrieves and manipulates any user's meal plans for bot operations.
 from typing import List, Optional
 from datetime import date
 from uuid import uuid4
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from core.supabase import supabase_service_client
+from enum import Enum
 
+class BotMealType(str, Enum):
+    BREAKFAST = "BREAKFAST"
+    LUNCH = "LUNCH"
+    DINNER = "DINNER"
+    ADDITIONAL = "ADDITIONAL"
 
 class BotMealPlan(BaseModel):
     """Input model for creating/updating meal plans"""
     user_id: str
+    meal_type: BotMealType
     meal_name: str
     total_calories: float
     total_protein: float
@@ -19,7 +26,22 @@ class BotMealPlan(BaseModel):
     total_fat: float
     planned_for_date: date
     status: Optional[str] = "Planned"
+    
+    model_config = ConfigDict(use_enum_values=True)
 
+
+class BotMealPlanUpdate(BaseModel):
+    """Input model for updating meal plans"""
+    meal_type: Optional[BotMealType] = None
+    meal_name: Optional[str] = None
+    total_calories: Optional[float] = None
+    total_protein: Optional[float] = None
+    total_carbs: Optional[float] = None
+    total_fat: Optional[float] = None
+    planned_for_date: Optional[date] = None
+    status: Optional[str] = None
+
+    model_config = ConfigDict(use_enum_values=True)
 
 class BotMealPlanResponse(BaseModel):
     """Response for bot meal plan endpoints"""
@@ -127,21 +149,24 @@ async def create_bot_meal_plan(plan: BotMealPlan) -> BotMealPlanResponse:
         )
 
 
-async def update_bot_meal_plan(plan_id: str, plan_update: dict) -> BotMealPlanResponse:
+async def update_bot_meal_plan(plan_id: str, plan_update: BotMealPlanUpdate) -> BotMealPlanResponse:
     """Update a meal plan (uses service role - no RLS)"""
     try:
-        # Don't allow updating these fields
-        plan_update.pop("id", None)
-        plan_update.pop("created_at", None)
-        plan_update.pop("user_id", None)
+        update_dict = plan_update.model_dump(exclude_unset=True)
         
+        if not update_dict:
+            return BotMealPlanResponse(
+                success=False,
+                message="No fields to update provided"
+            )
+            
         # Format date if present
-        if "planned_for_date" in plan_update:
-            if isinstance(plan_update["planned_for_date"], date):
-                plan_update["planned_for_date"] = plan_update["planned_for_date"].isoformat()
+        if "planned_for_date" in update_dict:
+            if isinstance(update_dict["planned_for_date"], date):
+                update_dict["planned_for_date"] = update_dict["planned_for_date"].isoformat()
         
         response = supabase_service_client.schema("nutriguard").table("meal_plans")\
-            .update(plan_update)\
+            .update(update_dict)\
             .eq("id", plan_id)\
             .execute()
         

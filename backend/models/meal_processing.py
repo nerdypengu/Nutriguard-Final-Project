@@ -60,6 +60,7 @@ class MealProcessingJobResponse(BaseModel):
     user_id: str = Field(..., description="User ID (UUID)")
     status: str = Field(..., description="Job status")
     progress_message: str = Field(..., description="Current progress message")
+    content: Optional[str] = Field(None, description="User's question/message content")
     result: Optional[Dict[str, Any]] = Field(None, description="Processing result (JSONB)")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
@@ -71,6 +72,7 @@ class MealProcessingJobResponse(BaseModel):
                 "user_id": "550e8400-e29b-41d4-a716-446655440001",
                 "status": "COMPLETED",
                 "progress_message": "Analisis selesai",
+                "content": "Berapa kalori dalam 100g ayam goreng?",
                 "result": {
                     "food_items": [
                         {

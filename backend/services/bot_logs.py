@@ -3,7 +3,7 @@ Bot consumption logs service - uses service role key to bypass RLS.
 Logs and retrieves consumption data for bot operations.
 """
 from typing import List
-from datetime import date
+from datetime import date, datetime
 from pydantic import BaseModel
 from core.supabase import supabase_service_client
 
@@ -122,4 +122,30 @@ async def bot_get_user_daily_totals(user_id: str, target_date: date) -> BotLogRe
         return BotLogResponse(
             success=False,
             message=f"Error calculating totals: {str(e)}"
+        )
+
+
+async def bot_get_today_logs(user_id: str) -> BotLogListResponse:
+    """Get consumption logs for today for a user (uses service role - no RLS)"""
+    try:
+        today = date.today()
+        tomorrow = date.fromordinal(today.toordinal() + 1)
+        
+        response = supabase_service_client.schema("nutriguard").table("consumption_logs")\
+            .select("*")\
+            .eq("user_id", user_id)\
+            .gte("logged_at", str(today))\
+            .lt("logged_at", str(tomorrow))\
+            .order("logged_at", desc=True)\
+            .execute()
+        
+        return BotLogListResponse(
+            success=True,
+            message="Today's logs retrieved successfully",
+            data=response.data if response.data else []
+        )
+    except Exception as e:
+        return BotLogListResponse(
+            success=False,
+            message=f"Error fetching today's logs: {str(e)}"
         )

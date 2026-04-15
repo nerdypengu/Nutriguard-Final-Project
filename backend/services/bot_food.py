@@ -52,16 +52,22 @@ async def get_bot_food(food_id: str) -> BotFoodResponse:
 async def search_bot_food_by_name(name: str) -> BotFoodListResponse:
     """Search food by name (uses service role - no RLS)"""
     try:
+        # Fetch ALL foods first to avoid the ilike filter that causes Supabase errors
         response = supabase_service_client.schema("nutriguard").table("food_items")\
             .select("id, name, calories, protein, fat, carbs, base_serving_size, is_user_contributed, created_by, created_at")\
-            .ilike("name", f"%{name}%")\
-            .not_.is_("embedding", "null")\
             .execute()
+        
+        # Filter on client side
+        search_name_lower = name.lower()
+        filtered_data = [
+            item for item in (response.data or [])
+            if search_name_lower in item.get('name', '').lower()
+        ]
         
         return BotFoodListResponse(
             success=True,
             message="Foods found",
-            data=response.data
+            data=filtered_data
         )
     except Exception as e:
         return BotFoodListResponse(
@@ -73,24 +79,14 @@ async def search_bot_food_by_name(name: str) -> BotFoodListResponse:
 async def semantic_search_bot_food(query: str, limit: int = 10) -> BotFoodListResponse:
     """Semantic search food (uses service role - no RLS)"""
     try:
-        # Generate embedding for query
-        embedding = generate_embedding(query)
+        # Always use text search for reliability - RPC has issues on Supabase
+        result = await search_bot_food_by_name(query)
         
-        # Call RPC function - works with service role
-        response = supabase_service_client.rpc(
-            "search_foods",
-            {
-                "query_embedding": embedding,
-                "similarity_threshold": 0.5,
-                "max_results": limit
-            }
-        ).execute()
-        
-        return BotFoodListResponse(
-            success=True,
-            message="Semantic search completed",
-            data=response.data
-        )
+        # Apply the limit if we found results
+        if result.success and result.data:
+            result.data = result.data[:limit]
+            
+        return result
     except Exception as e:
         return BotFoodListResponse(
             success=False,

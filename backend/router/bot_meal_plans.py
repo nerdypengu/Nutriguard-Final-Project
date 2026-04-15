@@ -11,7 +11,8 @@ from services.bot_meal_plans import (
     get_bot_user_meal_plans_by_date,
     create_bot_meal_plan,
     update_bot_meal_plan,
-    BotMealPlan
+    BotMealPlan,
+    BotMealPlanUpdate
 )
 from core.security import verify_bot_token
 from pydantic import BaseModel
@@ -69,6 +70,32 @@ async def bot_get_user_current_meal_plan(
     """
     Bot: Get today's meal plans for a user (bypass RLS).
     Requires bot JWT token.
+    """
+    try:
+        # Validate bot JWT token
+        token = authorization.replace("Bearer ", "")
+        token_data = verify_bot_token(token)
+        
+        result = await get_bot_user_current_meal_plan(user_id)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}"
+        )
+
+
+@router.get("/user/{user_id}/today", response_model=BotMealPlanListResponse)
+async def bot_get_user_today_meal_plans(
+    user_id: str,
+    authorization: str = Query(...)
+):
+    """
+    Bot: Get today's meal plans for a user (bypass RLS).
+    Requires bot JWT token.
+    
+    Example:
+        GET /api/bot/meal-plans/user/{user_id}/today?authorization=Bearer+{jwt}
     """
     try:
         # Validate bot JWT token
@@ -147,7 +174,7 @@ async def bot_create_meal_plan(
 @router.patch("/{plan_id}", response_model=BotMealPlanResponse)
 async def bot_update_meal_plan(
     plan_id: str,
-    plan_update: dict,
+    plan_update: BotMealPlanUpdate,
     authorization: str = Query(...)
 ):
     """

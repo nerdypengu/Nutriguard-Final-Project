@@ -7,7 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import KeycloakCallback from './pages/KeycloakCallback';
+
 import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
 import FoodLogPage from './pages/FoodLogPage';
@@ -26,7 +26,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
              <Route path="/signup" element={<SignupPage />} />
-             <Route path="/auth/callback" element={<KeycloakCallback />} />
+
           </Route>
 
           {/* Protected Pages */}

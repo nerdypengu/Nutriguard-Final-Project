@@ -10,8 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
-
+  const { login, keycloakLogin } = useAuth();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -33,17 +32,7 @@ export default function LoginPage() {
   };
 
   const handleKeycloakLogin = () => {
-    const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
-    const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'nutriguard';
-    const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'nutriguard-backend';
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    
-    // Construct the Keycloak authorization URL
-    // We use the authorization code flow
-    const authUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid email profile`;
-    
-    // Redirect browser to Keycloak Universal Login
-    window.location.href = authUrl;
+    keycloakLogin();
   };
 
   return (

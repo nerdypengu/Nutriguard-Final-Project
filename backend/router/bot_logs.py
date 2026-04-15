@@ -9,6 +9,7 @@ from services.bot_logs import (
     bot_log_consumption,
     bot_get_user_logs,
     bot_get_user_daily_totals,
+    bot_get_today_logs,
     BotConsumptionLog
 )
 from core.security import verify_bot_token
@@ -110,6 +111,32 @@ async def bot_get_daily_totals_endpoint(
         token_data = verify_bot_token(token)
         
         result = await bot_get_user_daily_totals(user_id, target_date)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}"
+        )
+
+
+@router.get("/user/{user_id}/today", response_model=BotLogListResponse)
+async def bot_get_today_logs_endpoint(
+    user_id: str,
+    authorization: str = Query(...)
+):
+    """
+    Bot: Get consumption logs for today for a user (bypass RLS).
+    Requires bot JWT token.
+    
+    Example:
+        GET /api/bot/logs/user/{user_id}/today?authorization=Bearer+{jwt}
+    """
+    try:
+        # Validate bot JWT token
+        token = authorization.replace("Bearer ", "")
+        token_data = verify_bot_token(token)
+        
+        result = await bot_get_today_logs(user_id)
         return result
     except Exception as e:
         raise HTTPException(

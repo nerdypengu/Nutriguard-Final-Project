@@ -11,19 +11,9 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
-
+  const { login, keycloakRegister } = useAuth();
   const handleKeycloakSignup = () => {
-    const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
-    const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'nutriguard';
-    const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'nutriguard-backend';
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    
-    // We can usually append kc_action=register if we strictly want keycloak to show register page first
-    // For universal login, standard auth URL is fine, but kc_action helps
-    const authUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid email profile&kc_action=register`;
-    
-    window.location.href = authUrl;
+    keycloakRegister();
   };
 
   const handleSignup = async (e: React.FormEvent) => {

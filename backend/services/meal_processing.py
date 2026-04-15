@@ -15,7 +15,8 @@ class MealProcessingJobService:
     @staticmethod
     async def create_job(
         user_id: str,
-        progress_message: str = "Memulai proses..."
+        progress_message: str = "Memulai proses...",
+        content: str = None
     ) -> Dict[str, Any]:
         """
         Create a new meal processing job
@@ -23,6 +24,7 @@ class MealProcessingJobService:
         Args:
             user_id: User ID (UUID)
             progress_message: Initial progress message
+            content: User's question/message content
             
         Returns:
             Created job data with id
@@ -37,6 +39,9 @@ class MealProcessingJobService:
                 "progress_message": progress_message,
                 "result": None
             }
+            
+            if content is not None:
+                job_data["content"] = content
 
             response = supabase_service_client.schema("nutriguard").table("meal_processing_jobs") \
                 .insert(job_data) \

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { 
-  MessageSquare, 
-  Send, 
-  Loader2, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  MessageSquare,
+  Send,
+  Loader2,
+  CheckCircle2,
+  XCircle,
   History,
-  Info 
+  Info
 } from 'lucide-react';
 
 interface NutritionResult {
@@ -19,6 +19,9 @@ interface JobStatus {
   id: string;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   progress_message: string;
+  message?: string;
+  prompt?: string;
+  content?: string;
   result: NutritionResult | null;
   created_at: string;
   updated_at: string;
@@ -61,6 +64,8 @@ export default function MealChatPage() {
       id: "temp",
       status: "PENDING",
       progress_message: "Mengirim pesan...",
+      message: message.trim(),
+      content: message.trim(),
       result: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -76,10 +81,12 @@ export default function MealChatPage() {
       setJobStatus(prev => prev ? {
         ...prev,
         id: response.job_id,
+        message: message.trim(),
+        content: message.trim(),
         status: response.status || 'PENDING',
-        progress_message: response.message || 'Pesanan diterima, koki mulai bekerja...'
+        progress_message: response.message || 'Pesanan diterima, AI mulai bekerja...'
       } : null);
-      
+
       pollStatus(response.job_id);
     } catch (err: any) {
       setError(err.message || 'Gagal mengirim pesan');
@@ -114,21 +121,18 @@ export default function MealChatPage() {
     }, 2000);
   };
 
-  const renderResult = (result: any) => {
-    // Attempt to extract text from common keys or use the first value in the object
-    const textContent = typeof result === 'string' 
-      ? result 
+  const getResultText = (result: any): string => {
+    if (!result) return "";
+    const textContent = typeof result === 'string'
+      ? result
       : (result?.text || result?.answer || result?.content || result?.message || result?.result || (result ? Object.values(result)[0] : ''));
+    return typeof textContent === 'string' ? String(textContent) : JSON.stringify(result);
+  };
 
+  const renderResult = (result: any) => {
     return (
-      <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-        <h3 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
-          <Info className="w-5 h-5" />
-          Hasil Analisis
-        </h3>
-        <div className="text-slate-700 whitespace-pre-wrap leading-relaxed bg-white p-4 rounded-lg border border-emerald-100 shadow-sm">
-          {typeof textContent === 'string' ? textContent : JSON.stringify(result, null, 2)}
-        </div>
+      <div className="text-slate-800 whitespace-pre-wrap leading-relaxed text-[15px]">
+        {getResultText(result)}
       </div>
     );
   };
@@ -139,32 +143,30 @@ export default function MealChatPage() {
       <div className="w-full md:w-72 lg:w-80 flex-shrink-0 flex flex-col h-[30vh] md:h-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50">
           <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-            <History className="w-5 h-5 text-emerald-600" /> 
+            <History className="w-5 h-5 text-emerald-600" />
             Riwayat Terakhir
           </h3>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/30">
           {history.length > 0 ? (
             history.map((job) => (
-              <div key={job.id} 
-                className={`p-3 rounded-xl border text-sm cursor-pointer transition-all ${
-                  jobStatus?.id === job.id 
-                    ? 'bg-emerald-50 border-emerald-300 shadow-sm' 
-                    : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-sm'
-                }`}
+              <div key={job.id}
+                className={`p-3 rounded-xl border text-sm cursor-pointer transition-all ${jobStatus?.id === job.id
+                  ? 'bg-emerald-50 border-emerald-300 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-sm'
+                  }`}
                 onClick={() => setJobStatus(job)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                    {new Date(job.created_at).toLocaleDateString()}
-                  </span>
-                  {job.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                  {['PENDING', 'PROCESSING'].includes(job.status) && <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />}
-                  {job.status === 'FAILED' && <XCircle className="w-4 h-4 text-rose-500" />}
+                <div className="mb-2">
+                  <p className="font-bold text-slate-800 line-clamp-2 leading-relaxed">
+                    {job.content || job.message || job.prompt || (job.result && getResultText(job.result)) || "Sesi Obrolan..."}
+                  </p>
                 </div>
-                <p className="text-slate-700 font-medium line-clamp-2 leading-relaxed">
-                  {job.progress_message}
-                </p>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  {['PENDING', 'PROCESSING'].includes(job.status) && <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />}
+                  {job.status === 'FAILED' && <XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                  <span className="line-clamp-1 italic">{job.progress_message || job.status}</span>
+                </div>
               </div>
             ))
           ) : (
@@ -191,25 +193,40 @@ export default function MealChatPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 flex flex-col-reverse bg-slate-50/10">
-          {/* Current Job Display */}
+          {/* Current Job Display format chat */}
           {jobStatus && (
-            <div className={`p-5 rounded-2xl border transition-all duration-300 ${
-              jobStatus.status === 'COMPLETED' ? 'bg-white border-emerald-200 shadow-sm' :
-              jobStatus.status === 'FAILED' ? 'bg-rose-50 border-rose-200' :
-              'bg-slate-50 border-slate-200 animate-pulse'
-            }`}>
-              <div className="flex items-center gap-3 mb-2">
-                {['PENDING', 'PROCESSING'].includes(jobStatus.status) && <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />}
-                {jobStatus.status === 'COMPLETED' && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                {jobStatus.status === 'FAILED' && <XCircle className="w-5 h-5 text-rose-500" />}
-                <span className={`font-medium ${
-                  jobStatus.status === 'FAILED' ? 'text-rose-700' : 'text-slate-700'
-                }`}>
-                  {jobStatus.progress_message}
-                </span>
-              </div>
+            <div className="flex flex-col gap-6 w-full pb-4">
+              {/* User Bubble */}
+              {(jobStatus.content || jobStatus.message || jobStatus.prompt) && (
+                <div className="flex justify-end w-full">
+                  <div className="max-w-[85%] md:max-w-[75%] bg-emerald-600 text-white px-5 py-3.5 rounded-3xl rounded-tr-sm shadow-sm relative">
+                    <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{jobStatus.content || jobStatus.message || jobStatus.prompt}</p>
+                  </div>
+                </div>
+              )}
 
-              {jobStatus.status === 'COMPLETED' && jobStatus.result && renderResult(jobStatus.result)}
+              {/* AI Bubble */}
+              <div className="flex justify-start w-full">
+                <div className="max-w-[90%] md:max-w-[85%] bg-white border border-slate-200 text-slate-700 px-5 py-4 rounded-3xl rounded-tl-sm shadow-sm relative">
+                  {['PENDING', 'PROCESSING'].includes(jobStatus.status) ? (
+                    <div className="flex items-center gap-3 text-emerald-600">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="font-medium text-sm animate-pulse">{jobStatus.progress_message}</span>
+                    </div>
+                  ) : jobStatus.status === 'FAILED' ? (
+                    <div className="flex items-center gap-3 text-rose-600">
+                      <XCircle className="w-5 h-5" />
+                      <span className="font-medium text-sm">{jobStatus.progress_message}</span>
+                    </div>
+                  ) : jobStatus.status === 'COMPLETED' && jobStatus.result ? (
+                    renderResult(jobStatus.result)
+                  ) : (
+                    <div className="flex items-center gap-3 text-slate-500">
+                      <span className="font-medium text-sm">{jobStatus.progress_message}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

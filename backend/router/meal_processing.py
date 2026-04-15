@@ -88,7 +88,8 @@ async def create_meal_processing_job(
         # Create job in database with PENDING status
         job_data = await MealProcessingJobService.create_job(
             user_id=request.user_id,
-            progress_message="Pesanan diterima, koki mulai bekerja..."
+            progress_message="Pesanan diterima, koki mulai bekerja...",
+            content=request.message
         )
 
         job_id = str(job_data["id"])
