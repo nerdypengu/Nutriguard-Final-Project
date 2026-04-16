@@ -32,6 +32,7 @@ export default function FoodLogPage() {
     if (!user) return;
     fetchRecentLogs();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let realtimeChannel: any = null;
 
     const setupRealtime = async () => {
