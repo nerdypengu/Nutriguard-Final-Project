@@ -2,8 +2,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 export const api = {
   get: async (endpoint: string) => request(endpoint, { method: 'GET' }),
-  post: async (endpoint: string, data?: any) => request(endpoint, { method: 'POST', body: JSON.stringify(data) }),
-  put: async (endpoint: string, data: any) => request(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
+  post: async (endpoint: string, data?: unknown) => request(endpoint, { method: 'POST', body: JSON.stringify(data) }),
+  put: async (endpoint: string, data: unknown) => request(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
   delete: async (endpoint: string) => request(endpoint, { method: 'DELETE' }),
 };
 

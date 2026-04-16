@@ -128,8 +128,8 @@ export default function MealPlansPage() {
       resetForm();
       fetchPlans(); // Refresh the list
       setTimeout(() => setMessage({ type: '', text: '' }), 4000);
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Gagal menyimpan rencana makan.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Gagal menyimpan rencana makan.' });
     } finally {
       setFormLoading(false);
     }
@@ -141,8 +141,7 @@ export default function MealPlansPage() {
     .filter(plan => filterType === 'ALL' || plan.meal_type === filterType)
     .sort((a, b) => {
       // Sort logically by meal type progression
-      const order = { 'BREAKFAST': 1, 'LUNCH': 2, 'DINNER': 3, 'SNACK': 4 };
-      // @ts-ignore
+      const order: Record<string, number> = { 'BREAKFAST': 1, 'LUNCH': 2, 'DINNER': 3, 'SNACK': 4 };
       return (order[a.meal_type] || 5) - (order[b.meal_type] || 5);
     });
 

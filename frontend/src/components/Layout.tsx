@@ -29,10 +29,10 @@ export function Layout() {
       try {
         const response = await api.get('/meal-processing/jobs?limit=5');
         if (response && response.jobs) {
-          const failed = response.jobs.some((job: any) => job.status === 'FAILED');
+          const failed = response.jobs.some((job: { status: string }) => job.status === 'FAILED');
           setHasFailedJob(failed);
         }
-      } catch (e) {
+      } catch {
         // Silently omit error
       }
     };

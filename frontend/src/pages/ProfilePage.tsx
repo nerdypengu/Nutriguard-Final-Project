@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { Save, User, Settings, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Save, Settings, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   
   // Preferences state
   const [dietType, setDietType] = useState('Standard');
@@ -68,8 +68,8 @@ export default function ProfilePage() {
       }
 
       setMessage({ type: 'success', text: 'Pengaturan berhasil disimpan!' });
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Terjadi kesalahan saat menyimpan.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Terjadi kesalahan saat menyimpan.' });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);

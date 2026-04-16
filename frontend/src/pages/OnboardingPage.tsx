@@ -47,8 +47,8 @@ export default function OnboardingPage() {
 
       // Success!
       navigate('/dashboard');
-    } catch (error: any) {
-      setErrorMsg(error.message || 'Terjadi kesalahan saat menyimpan pengaturan preferensi.');
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'Terjadi kesalahan saat menyimpan pengaturan preferensi.');
     } finally {
       setSaving(false);
     }

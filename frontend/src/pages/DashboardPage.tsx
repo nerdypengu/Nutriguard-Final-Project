@@ -11,8 +11,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [targets, setTargets] = useState({ calories: 2000, protein: 120, carbs: 250, fat: 65 });
-  const [meals, setMeals] = useState<any[]>([]);
-  const [mealPlans, setMealPlans] = useState<any[]>([]);
+  const [meals, setMeals] = useState<Array<{ id: string; food_name: string; logged_at: string; total_protein: number; total_carbs: number; total_fat: number; total_calories: number }>>([]);
+  const [mealPlans, setMealPlans] = useState<Array<{ id: string; meal_type: string; food_name: string; target_protein: number; target_carbs: number; target_fat: number; target_calories: number }>>([]);
 
   useEffect(() => {
     if (!user) return;

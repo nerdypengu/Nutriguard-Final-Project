@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 interface NutritionResult {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface JobStatus {
@@ -34,23 +34,24 @@ export default function MealChatPage() {
   const [history, setHistory] = useState<JobStatus[]>([]);
   const [isPolling, setIsPolling] = useState(false);
 
-  // Fetch job history on mount
-  useEffect(() => {
-    if (user?.id) {
-      fetchHistory();
-    }
-  }, [user]);
-
   const fetchHistory = async () => {
     try {
       const response = await api.get(`/meal-processing/jobs?limit=10`);
       if (response && response.jobs) {
         setHistory(response.jobs);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch history', err);
     }
   };
+
+  // Fetch job history on mount
+  useEffect(() => {
+    if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchHistory();
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +87,8 @@ export default function MealChatPage() {
       } : null);
 
       pollStatus(response.job_id);
-    } catch (err: any) {
-      setError(err.message || 'Gagal mengirim pesan');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal mengirim pesan');
       setLoading(false);
       setJobStatus(null);
     }
@@ -109,7 +110,7 @@ export default function MealChatPage() {
             fetchHistory();
           }
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Polling error:', err);
         clearInterval(pollInterval);
         setError('Koneksi terputus saat mengecek status');
@@ -119,7 +120,7 @@ export default function MealChatPage() {
     }, 2000);
   };
 
-  const getResultText = (result: any): string => {
+  const getResultText = (result: unknown): string => {
     if (!result) return "";
     const textContent = typeof result === 'string'
       ? result
@@ -127,7 +128,7 @@ export default function MealChatPage() {
     return typeof textContent === 'string' ? String(textContent) : JSON.stringify(result);
   };
 
-  const renderResult = (result: any) => {
+  const renderResult = (result: unknown) => {
     return (
       <div className="text-slate-800 whitespace-pre-wrap leading-relaxed text-[15px]">
         {getResultText(result)}

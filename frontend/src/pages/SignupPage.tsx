@@ -45,8 +45,8 @@ export default function SignupPage() {
       } else {
         setErrorMsg(response.message || 'Pendaftaran gagal, periksa data Anda.');
       }
-    } catch (error: any) {
-      setErrorMsg(error.message || 'Terjadi kesalahan saat pendaftaran.');
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'Terjadi kesalahan saat pendaftaran.');
     } finally {
       setLoading(false);
     }

@@ -24,8 +24,8 @@ export default function LoginPage() {
       } else {
         setErrorMsg(response.message || 'Login failed, please check your credentials.');
       }
-    } catch (error: any) {
-      setErrorMsg(error.message || 'An unexpected error occurred during login.');
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'An unexpected error occurred during login.');
     } finally {
       setLoading(false);
     }

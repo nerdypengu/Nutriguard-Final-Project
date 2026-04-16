@@ -14,7 +14,7 @@ export default function FoodLogPage() {
   
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [recentLogs, setRecentLogs] = useState<Array<{ id: string; food_name: string; logged_at: string; total_calories: number }>>([]);
 
   const fetchRecentLogs = () => {
     if (!user) return;
@@ -57,9 +57,9 @@ export default function FoodLogPage() {
         fetchRecentLogs();
         setTimeout(() => setIsSuccess(false), 3000);
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
-      alert(e.message || "Gagal mencatat makanan.");
+      alert(e instanceof Error ? e.message : "Gagal mencatat makanan.");
     } finally {
       setLoading(false);
     }

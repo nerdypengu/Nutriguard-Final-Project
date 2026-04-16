@@ -36,8 +36,8 @@ export default function IntegrationsPage() {
       login({ ...user, discord_id: discordId, discord_username: discordUsername }, token);
 
       setMessage({ type: 'success', text: 'Konfigurasi Discord berhasil disimpan!' });
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Terjadi kesalahan saat menyimpan.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Terjadi kesalahan saat menyimpan.' });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);

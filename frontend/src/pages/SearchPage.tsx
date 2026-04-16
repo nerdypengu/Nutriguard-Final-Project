@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Array<{ id: string; name: string; calories: number; protein: number; carbs: number; fat: number }>>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchedPhrase, setSearchedPhrase] = useState('');
   
@@ -32,16 +32,16 @@ export default function SearchPage() {
     }
   };
 
-  const handleLogFood = async (food: any) => {
+  const handleLogFood = async (food: { name: string; calories: number; protein: number; carbs: number; fat: number }) => {
     if (!user) return;
     try {
       const logData = {
         user_id: user.id,
         food_name: food.name,
         total_calories: food.calories,
-        total_protein: food.protein_g,
-        total_carbs: food.carbs_g,
-        total_fat: food.fat_g,
+        total_protein: food.protein,
+        total_carbs: food.carbs,
+        total_fat: food.fat,
         logged_at: new Date().toISOString()
       };
       
@@ -96,7 +96,7 @@ export default function SearchPage() {
              </div>
           ) : (
             <div className="grid gap-4">
-              {results.map((food: any) => (
+              {results.map((food) => (
                 <div key={food.id} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:border-emerald-200 transition-all hover:shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                   
                   <div className="flex-1">
@@ -107,17 +107,17 @@ export default function SearchPage() {
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-orange-500"></span>
                         <span className="text-sm font-medium text-slate-600">Protein:</span>
-                        <span className="text-sm font-bold text-slate-900">{food.protein_g}g</span>
+                        <span className="text-sm font-bold text-slate-900">{food.protein}g</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                         <span className="text-sm font-medium text-slate-600">Karbo:</span>
-                        <span className="text-sm font-bold text-slate-900">{food.carbs_g}g</span>
+                        <span className="text-sm font-bold text-slate-900">{food.carbs}g</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-red-500"></span>
                         <span className="text-sm font-medium text-slate-600">Lemak:</span>
-                        <span className="text-sm font-bold text-slate-900">{food.fat_g}g</span>
+                        <span className="text-sm font-bold text-slate-900">{food.fat}g</span>
                       </div>
                     </div>
                   </div>
