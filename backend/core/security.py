@@ -3,16 +3,12 @@ JWT and security utilities for NutriGuard Backend
 """
 import uuid
 import logging
-import json
-import base64
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from keycloak import KeycloakOpenID
-from jwcrypto import jwk
 from core.config import (
     JWT_SECRET_KEY, 
     JWT_ALGORITHM, 

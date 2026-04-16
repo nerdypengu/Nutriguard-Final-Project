@@ -122,10 +122,15 @@ export default function MealChatPage() {
 
   const getResultText = (result: unknown): string => {
     if (!result) return "";
-    const textContent = typeof result === 'string'
-      ? result
-      : (result?.text || result?.answer || result?.content || result?.message || result?.result || (result ? Object.values(result)[0] : ''));
-    return typeof textContent === 'string' ? String(textContent) : JSON.stringify(result);
+    if (typeof result === 'string') return result;
+    
+    if (typeof result === 'object' && result !== null) {
+      const resObj = result as Record<string, unknown>;
+      const textContent = resObj.text || resObj.answer || resObj.content || resObj.message || resObj.result || Object.values(resObj)[0];
+      if (typeof textContent === 'string') return textContent;
+    }
+    
+    return JSON.stringify(result);
   };
 
   const renderResult = (result: unknown) => {

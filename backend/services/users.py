@@ -172,7 +172,7 @@ async def update_user(user_id: str, discord_id: str = None, discord_username: st
 async def delete_user(user_id: str) -> UserResponse:
     """Delete a user (cascades to related data)"""
     try:
-        response = supabase_service_client.schema("nutriguard").table("users").delete().eq("id", user_id).execute()
+        supabase_service_client.schema("nutriguard").table("users").delete().eq("id", user_id).execute()
         return UserResponse(
             success=True,
             message="User deleted successfully"
@@ -266,16 +266,12 @@ async def update_user_preferences(user_id: str, preferences: UserPreferences) ->
             success=False,
             message=f"Error updating preferences: {str(e)}"
         )
-    except Exception as e:
-        return UserResponse(
-            success=False,
-            message=f"Error updating preferences: {str(e)}"
-        )
+
 
 async def delete_user_preferences(user_id: str) -> UserResponse:
     """Delete user preferences"""
     try:
-        response = supabase_service_client.schema("nutriguard").table("user_preferences").delete().eq("user_id", user_id).execute()
+        supabase_service_client.schema("nutriguard").table("user_preferences").delete().eq("user_id", user_id).execute()
         return UserResponse(
             success=True,
             message="User preferences deleted successfully"

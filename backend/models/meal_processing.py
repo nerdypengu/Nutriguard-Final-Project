@@ -29,13 +29,7 @@ class ChatMessageRequest(BaseModel):
             }
         }
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_id": "550e8400-e29b-41d4-a716-446655440000",
-                "message": "Berapa kalori dalam 100g ayam goreng?"
-            }
-        }
+
 
 
 class ChatMessageResponse(BaseModel):

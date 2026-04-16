@@ -5,8 +5,6 @@ Includes fallback for production environments without Redis (e.g., Vercel).
 """
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from fastapi import Request
 import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
