@@ -61,7 +61,7 @@ export default function FoodLogPage() {
     setupRealtime();
 
     return () => {
-      if (realtimeChannel) {
+      if (realtimeChannel && realtimeSupabase) {
         realtimeSupabase.removeChannel(realtimeChannel);
       }
     };

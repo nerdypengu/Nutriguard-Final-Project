@@ -97,7 +97,7 @@ export default function DashboardPage() {
     setupRealtime();
 
     return () => {
-      if (realtimeChannel) {
+      if (realtimeChannel && realtimeSupabase) {
         realtimeSupabase.removeChannel(realtimeChannel);
       }
     };
