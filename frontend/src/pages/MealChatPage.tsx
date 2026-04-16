@@ -5,10 +5,8 @@ import {
   MessageSquare,
   Send,
   Loader2,
-  CheckCircle2,
   XCircle,
-  History,
-  Info
+  History
 } from 'lucide-react';
 
 interface NutritionResult {

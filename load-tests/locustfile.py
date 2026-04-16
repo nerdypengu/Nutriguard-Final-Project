@@ -95,3 +95,53 @@ class NutriGuardUser(HttpUser):
             elif response.status_code == 404:
                 # Job not found, remove from pending
                 self.pending_jobs.pop(job_id, None)
+
+    @task(1)
+    def create_meal_plan(self):
+        """Simulate user creating a meal plan"""
+        if not self.token or not self.user_id:
+            return
+            
+        import datetime
+        import random
+        
+        if not hasattr(self, 'known_meal_plan_ids'):
+            self.known_meal_plan_ids = []
+            
+        today = datetime.date.today().isoformat()
+        meal_types = ["BREAKFAST", "LUNCH", "DINNER", "ADDITIONAL"]
+        food_names = ["Nasi Goreng Spesial", "Dada Ayam Bakar", "Salad Buah", "Oatmeal Pisang", "Smoothie Mangga"]
+        
+        payload = {
+            "user_id": self.user_id,
+            "meal_type": random.choice(meal_types),
+            "meal_name": random.choice(food_names),
+            "total_calories": round(random.uniform(200, 800), 2),
+            "total_protein": round(random.uniform(5, 50), 2),
+            "total_carbs": round(random.uniform(10, 80), 2),
+            "total_fat": round(random.uniform(5, 40), 2),
+            "planned_for_date": today,
+            "status": "Planned"
+        }
+        
+        response = self.client.post("/api/meal-plans/", json=payload, name="/api/meal-plans/")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("success") and data.get("data", {}).get("id"):
+                self.known_meal_plan_ids.append(data["data"]["id"])
+
+    @task(3)
+    def fetch_meal_plans(self):
+        """Simulate user fetching their meal plans"""
+        if self.token and self.user_id:
+            self.client.get(f"/api/meal-plans/user/{self.user_id}/current", name="/api/meal-plans/user/{id}/current")
+
+    @task(1)
+    def update_meal_plan_status(self):
+        """Simulate user updating a meal plan status"""
+        if self.token and hasattr(self, 'known_meal_plan_ids') and self.known_meal_plan_ids:
+            import random
+            plan_id = random.choice(self.known_meal_plan_ids)
+            statuses = ["Planned", "In Progress", "Completed"]
+            self.client.patch(f"/api/meal-plans/{plan_id}/status?status={random.choice(statuses)}", name="/api/meal-plans/{id}/status")
+
