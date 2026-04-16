@@ -34,33 +34,22 @@ jobs:
 
       - name: Build Frontend
         run: npm run build
-
-      # Optional: Deploy to Vercel via GitHub Actions CLI
-      # This requires VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID secrets set in your GitHub repo.
-      # If you use the Vercel GitHub App integration instead, you can remove these steps.
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull Vercel Environment Information
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy Frontend to Vercel (Production)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: vercel build --prod && vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
-      - name: Frontend Smoke Test
+      - name: Frontend Runtime Smoke Test
         run: |
-          if [ -f "dist/index.html" ]; then
-            echo "✓ Frontend build successful: index.html exists"
+          # Start Vite preview in the background (serves the 'dist' folder)
+          npm run preview -- --port 4173 &
+          
+          # Give it a few seconds to start
+          sleep 5
+          
+          # Check if the frontend is responding
+          if curl -s http://localhost:4173 | grep -q "root"; then
+            echo "✓ Frontend runtime smoke test passed!"
+            pkill -f vite || true
           else
-            echo "✗ Frontend build failed: index.html not found"
+            echo "✗ Frontend runtime smoke test failed: Could not detect root div"
+            pkill -f vite || true
             exit 1
           fi
 
