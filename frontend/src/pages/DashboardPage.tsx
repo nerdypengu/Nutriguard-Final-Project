@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const [totals, setTotals] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [targets, setTargets] = useState({ calories: 2000, protein: 120, carbs: 250, fat: 65 });
   const [meals, setMeals] = useState<Array<{ id: string; food_name: string; logged_at: string; total_protein: number; total_carbs: number; total_fat: number; total_calories: number }>>([]);
-  const [mealPlans, setMealPlans] = useState<Array<{ id: string; meal_type: string; food_name: string; target_protein: number; target_carbs: number; target_fat: number; target_calories: number }>>([]);
+  const [mealPlans, setMealPlans] = useState<Array<{ id: string; meal_type: string; meal_name: string; total_protein: number; total_carbs: number; total_fat: number; total_calories: number }>>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -52,11 +52,9 @@ export default function DashboardPage() {
 
         // Fetch Today's Meal Plans
         const plansRes = await api.get(`/meal-plans/user/${user.id}/current`).catch(() => ({}));
-        if (plansRes.success && plansRes.plans) {
-          setMealPlans(plansRes.plans);
-        } else if (Array.isArray(plansRes)) {
-          setMealPlans(plansRes);
-        }
+        // Robust handling of both 'data' and 'plans' property names
+        const fetchedPlans = plansRes.data || plansRes.plans || (Array.isArray(plansRes) ? plansRes : []);
+        setMealPlans(fetchedPlans);
 
       } catch (error) {
         console.error("Failed to load dashboard data", error);
@@ -128,7 +126,7 @@ export default function DashboardPage() {
     'BREAKFAST': 'Sarapan',
     'LUNCH': 'Makan Siang',
     'DINNER': 'Makan Malam',
-    'SNACK': 'Cemilan'
+    'ADDITIONAL': 'Cemilan'
   };
 
   const getBadgeStyles = (type: string) => {
@@ -136,7 +134,7 @@ export default function DashboardPage() {
       case 'BREAKFAST': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'LUNCH': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'DINNER': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-      case 'SNACK': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'ADDITIONAL': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
@@ -308,18 +306,18 @@ export default function DashboardPage() {
                             {MEAL_TYPES_LABELS[plan.meal_type] || plan.meal_type}
                          </span>
                       </div>
-                      <p className="font-semibold text-slate-900 leading-tight">{plan.food_name}</p>
+                      <p className="font-semibold text-slate-900 leading-tight">{plan.meal_name}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm sm:text-base ml-16 md:ml-0">
                     <div className="hidden lg:flex items-center gap-3 text-slate-500 font-medium">
-                       <span>P: {Math.round(plan.target_protein)}g</span>
-                       <span>C: {Math.round(plan.target_carbs)}g</span>
-                       <span>F: {Math.round(plan.target_fat)}g</span>
+                       <span>P: {Math.round(plan.total_protein)}g</span>
+                       <span>C: {Math.round(plan.total_carbs)}g</span>
+                       <span>F: {Math.round(plan.total_fat)}g</span>
                     </div>
                     <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-lg shrink-0">
                       <Target className="w-4 h-4 text-slate-400" />
-                      {Math.round(plan.target_calories)} kcal target
+                      {Math.round(plan.total_calories)} kcal target
                     </span>
                   </div>
                 </li>

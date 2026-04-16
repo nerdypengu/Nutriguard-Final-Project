@@ -6,13 +6,13 @@ import { CalendarDays, PlusCircle, CheckCircle2, AlertCircle, Calendar, Pencil, 
 interface MealPlan {
   id: string;
   user_id: string;
-  food_name: string;
-  meal_type: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
-  plan_date: string;
-  target_calories: number;
-  target_protein: number;
-  target_carbs: number;
-  target_fat: number;
+  meal_name: string;
+  meal_type: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'ADDITIONAL';
+  planned_for_date: string;
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
   status: 'PLANNED' | 'CONSUMED' | 'SKIPPED';
   created_at: string;
   updated_at: string;
@@ -22,7 +22,7 @@ const MEAL_TYPES = [
   { value: 'BREAKFAST', label: 'Sarapan', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   { value: 'LUNCH', label: 'Makan Siang', color: 'bg-orange-100 text-orange-800 border-orange-200' },
   { value: 'DINNER', label: 'Makan Malam', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'SNACK', label: 'Cemilan', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
+  { value: 'ADDITIONAL', label: 'Cemilan', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
 ];
 
 export default function MealPlansPage() {
@@ -53,13 +53,10 @@ export default function MealPlansPage() {
     if (!user) return;
     try {
       setLoading(true);
-      const data = await api.get(`/meal-plans/user/${user.id}`);
-      if (data.success && data.plans) {
-        setPlans(data.plans);
-      } else if (Array.isArray(data)) {
-        // Fallback in case endpoint returns array directly
-        setPlans(data);
-      }
+      const res = await api.get(`/meal-plans/user/${user.id}`);
+      // Robust handling of both 'data' and 'plans' property names
+      const fetchedPlans = res.data || res.plans || (Array.isArray(res) ? res : []);
+      setPlans(fetchedPlans);
     } catch (err) {
       console.error('Failed to load meal plans', err);
     } finally {
@@ -83,13 +80,13 @@ export default function MealPlansPage() {
 
   const handleEditClick = (plan: MealPlan) => {
     setIsEditing(plan.id);
-    setFormDate(plan.plan_date);
-    setFormFoodName(plan.food_name);
+    setFormDate(plan.planned_for_date);
+    setFormFoodName(plan.meal_name);
     setFormMealType(plan.meal_type);
-    setFormCalories(plan.target_calories.toString());
-    setFormProtein(plan.target_protein.toString());
-    setFormCarbs(plan.target_carbs.toString());
-    setFormFat(plan.target_fat.toString());
+    setFormCalories(plan.total_calories.toString());
+    setFormProtein(plan.total_protein.toString());
+    setFormCarbs(plan.total_carbs.toString());
+    setFormFat(plan.total_fat.toString());
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -107,13 +104,13 @@ export default function MealPlansPage() {
 
     const payload = {
       user_id: user.id,
-      food_name: formFoodName,
+      meal_name: formFoodName,
       meal_type: formMealType,
-      plan_date: formDate,
-      target_calories: Number(formCalories),
-      target_protein: Number(formProtein),
-      target_carbs: Number(formCarbs),
-      target_fat: Number(formFat)
+      planned_for_date: formDate,
+      total_calories: Number(formCalories),
+      total_protein: Number(formProtein),
+      total_carbs: Number(formCarbs),
+      total_fat: Number(formFat)
     };
 
     try {
@@ -137,7 +134,11 @@ export default function MealPlansPage() {
 
   // Filtered Results
   const filteredPlans = plans
-    .filter(plan => plan.plan_date === filterDate)
+    .filter(plan => {
+      // Normalize both dates to YYYY-MM-DD for comparison
+      const planDate = plan.planned_for_date?.substring(0, 10);
+      return planDate === filterDate;
+    })
     .filter(plan => filterType === 'ALL' || plan.meal_type === filterType)
     .sort((a, b) => {
       // Sort logically by meal type progression
@@ -331,29 +332,29 @@ export default function MealPlansPage() {
                         {getBadgeLabel(plan.meal_type)}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
-                        {new Date(plan.plan_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        {new Date(plan.planned_for_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </span>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 leading-tight">{plan.food_name}</h3>
+                    <h3 className="text-lg font-bold text-slate-900 leading-tight">{plan.meal_name}</h3>
                   </div>
-
+ 
                   <div className="flex items-center gap-6">
                     <div className="grid grid-cols-4 gap-4 text-center md:text-left text-sm">
                       <div>
                          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Kcal</p>
-                         <p className="font-bold text-emerald-600">{Math.round(plan.target_calories)}</p>
+                         <p className="font-bold text-emerald-600">{Math.round(plan.total_calories)}</p>
                       </div>
                       <div>
                          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Pro</p>
-                         <p className="font-semibold text-slate-700">{Math.round(plan.target_protein)}g</p>
+                         <p className="font-semibold text-slate-700">{Math.round(plan.total_protein)}g</p>
                       </div>
                       <div>
                          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Carb</p>
-                         <p className="font-semibold text-slate-700">{Math.round(plan.target_carbs)}g</p>
+                         <p className="font-semibold text-slate-700">{Math.round(plan.total_carbs)}g</p>
                       </div>
                       <div>
                          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Fat</p>
-                         <p className="font-semibold text-slate-700">{Math.round(plan.target_fat)}g</p>
+                         <p className="font-semibold text-slate-700">{Math.round(plan.total_fat)}g</p>
                       </div>
                     </div>
                     

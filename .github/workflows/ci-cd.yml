@@ -54,6 +54,15 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      
+      - name: Frontend Smoke Test
+        run: |
+          if [ -f "dist/index.html" ]; then
+            echo "✓ Frontend build successful: index.html exists"
+          else
+            echo "✗ Frontend build failed: index.html not found"
+            exit 1
+          fi
 
   backend-ci:
     name: Backend CI Build
@@ -85,3 +94,36 @@ jobs:
         run: |
           # Just validating that the docker image builds correctly as a CI step
           docker build -t backend:ci-test .
+      
+      - name: Backend Runtime Smoke Test
+        working-directory: ./backend
+        env:
+          SUPABASE_URL: "https://example.supabase.co"
+          SUPABASE_KEY: "dummy-key"
+          SUPABASE_SERVICE_ROLE_KEY: "dummy-service-key"
+          SUPABASE_JWT_SECRET: "dummy-secret"
+          KEYCLOAK_SERVER_URL: "https://example.keycloak.com"
+          KEYCLOAK_REALM: "dummy"
+          KEYCLOAK_CLIENT_ID: "dummy"
+          KEYCLOAK_CLIENT_SECRET: "dummy"
+        run: |
+          # Install uvicorn if not present
+          pip install uvicorn
+          
+          # Start uvicorn in the background
+          python -m uvicorn main:app --host 127.0.0.1 --port 8000 &
+          
+          # Give it a few seconds to boot up
+          sleep 5
+          
+          # Check health endpoint
+          RESPONSE=$(curl -s http://127.0.0.1:8000/health)
+          if [[ $RESPONSE == *"status\":\"ok"* ]]; then
+            echo "✓ Backend health check passed!"
+            # Kill the process
+            pkill python || true
+          else
+            echo "✗ Backend health check failed: $RESPONSE"
+            pkill python || true
+            exit 1
+          fi

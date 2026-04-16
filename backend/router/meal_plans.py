@@ -78,16 +78,11 @@ async def get_user_meal_plans_endpoint(
     
     cache_key = f"meals:user:{user_id}"
     
-    # Try to get from cache
-    cached = await get_cache(cache_key)
-    if cached:
-        return PlanListResponse(**json.loads(cached))
-    
-    # If not in cache, fetch from database
+    # Fetch from database (bypassing cache for immediate updates during development)
     result = await get_user_meal_plans(user_id)
     
-    # Cache the result
-    await set_cache(cache_key, result.model_dump_json(), REDIS_CACHE_TTL)
+    # Cache the result for performance (5 mins)
+    await set_cache(cache_key, result.model_dump_json(), 300)
     
     return result
 
@@ -139,19 +134,13 @@ async def get_current_meal_plan_endpoint(
         )
     
     today = date.today()
-    
     cache_key = f"meals:user:{user_id}:date:{today}"
     
-    # Try to get from cache
-    cached = await get_cache(cache_key)
-    if cached:
-        return PlanListResponse(**json.loads(cached))
-    
-    # If not in cache, fetch from database
+    # Fetch fresh from database (skip cache for current day to ensure immediate updates)
     result = await get_meal_plans_by_date(user_id, today)
     
-    # Cache the result
-    await set_cache(cache_key, result.model_dump_json(), REDIS_CACHE_TTL)
+    # Cache the result for other callers, but always return fresh data here
+    await set_cache(cache_key, result.model_dump_json(), 300) # Lower TTL to 5 mins for today
     
     return result
 
