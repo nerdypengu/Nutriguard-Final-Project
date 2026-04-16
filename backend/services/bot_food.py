@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from core.supabase import supabase_service_client
 
 
-
 class BotFoodResponse(BaseModel):
     """Response for bot food endpoints"""
     success: bool

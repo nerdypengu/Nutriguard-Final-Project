@@ -2,7 +2,6 @@
 Bot API endpoints for food operations.
 Uses service role key to bypass RLS - accessible to bots only with API key.
 """
-import json
 from typing import Optional
 from fastapi import APIRouter, Query, HTTPException, status
 from services.bot_food import get_bot_food, search_bot_food_by_name, semantic_search_bot_food
