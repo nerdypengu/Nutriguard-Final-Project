@@ -15,7 +15,7 @@ from services.users import (
     get_user_preferences,
     update_user_preferences,
     delete_user_preferences,
-    UserProfile,
+
     UserPreferences,
     UserPreferencesInput,
     UserResponse,

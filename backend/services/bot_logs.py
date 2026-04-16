@@ -3,7 +3,7 @@ Bot consumption logs service - uses service role key to bypass RLS.
 Logs and retrieves consumption data for bot operations.
 """
 from typing import List
-from datetime import date, datetime
+from datetime import date
 from pydantic import BaseModel
 from core.supabase import supabase_service_client
 

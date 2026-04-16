@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from uuid import uuid4
-from core.supabase import supabase_client, supabase_service_client
+from core.supabase import supabase_service_client
 from services.embeddings import generate_embedding
-from postgrest.exceptions import APIError
+
 import hashlib
 import json
 
@@ -188,7 +188,7 @@ async def update_food(food_id: str, food: FoodItem) -> FoodResponse:
 async def delete_food(food_id: str) -> FoodResponse:
     """Delete a food item"""
     try:
-        response = supabase_service_client.schema("nutriguard").table("food_items").delete().eq("id", food_id).execute()
+        supabase_service_client.schema("nutriguard").table("food_items").delete().eq("id", food_id).execute()
         return FoodResponse(
             success=True,
             message="Food item deleted successfully"

@@ -1,6 +1,6 @@
 import json
-from fastapi import APIRouter, Depends, Request, Query
-from datetime import date, datetime
+from fastapi import APIRouter, Depends, Request
+from datetime import date
 from core.security import get_current_user, TokenData
 from core.rate_limit import limiter, RATE_LIMITS
 from core.redis import get_cache, set_cache, delete_cache

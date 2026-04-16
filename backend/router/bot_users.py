@@ -39,7 +39,7 @@ async def bot_get_user_preferences(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await get_bot_user_preferences(user_id)
         return result

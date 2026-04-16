@@ -43,7 +43,7 @@ async def verify_bot_access(discord_id: str):
             }
         }
     """
-    from services.food import get_response_hash
+
     
     # Create cache key
     cache_key = f"bot:verify:{discord_id}"

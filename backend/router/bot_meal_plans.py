@@ -51,7 +51,7 @@ async def bot_get_user_meal_plans(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await get_bot_user_meal_plans(user_id)
         return result
@@ -74,7 +74,7 @@ async def bot_get_user_current_meal_plan(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await get_bot_user_current_meal_plan(user_id)
         return result
@@ -100,7 +100,7 @@ async def bot_get_user_today_meal_plans(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await get_bot_user_current_meal_plan(user_id)
         return result
@@ -124,7 +124,7 @@ async def bot_get_user_meal_plans_by_date(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await get_bot_user_meal_plans_by_date(user_id, target_date)
         return result
@@ -160,7 +160,7 @@ async def bot_create_meal_plan(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await create_bot_meal_plan(plan)
         return result
@@ -191,7 +191,7 @@ async def bot_update_meal_plan(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await update_bot_meal_plan(plan_id, plan_update)
         return result

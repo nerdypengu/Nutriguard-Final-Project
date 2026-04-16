@@ -3,10 +3,9 @@ Services for meal processing job operations
 Handles all database operations for meal processing jobs
 """
 from typing import Optional, Dict, Any
-from datetime import datetime
-import uuid
+
 from core.supabase import supabase_service_client
-from models.meal_processing import JobStatus, MealProcessingJobResponse
+from models.meal_processing import JobStatus
 
 
 class MealProcessingJobService:

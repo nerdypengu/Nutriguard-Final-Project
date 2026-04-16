@@ -22,14 +22,14 @@ async def verify_connection():
         print("Verifying connection to Supabase...")
         
         # Try calling the RPC function with an empty array to verify it exists
-        response = supabase_service_client.rpc("insert_food_items", {"items": []}).execute()
+        supabase_service_client.rpc("insert_food_items", {"items": []}).execute()
         
         print("✓ Successfully connected to Supabase")
         print("✓ RPC function 'insert_food_items' is accessible")
         return True
         
     except Exception as e:
-        print(f"✗ Failed to connect to Supabase or access RPC function")
+        print("✗ Failed to connect to Supabase or access RPC function")
         print(f"Error: {e}")
         return False
 
@@ -77,7 +77,7 @@ async def import_gizi_json():
     for i in range(0, len(food_items_to_insert), batch_size):
         batch = food_items_to_insert[i:i + batch_size]
         try:
-            response = supabase_service_client.rpc("insert_food_items", {"items": batch}).execute()
+            supabase_service_client.rpc("insert_food_items", {"items": batch}).execute()
             print(f"Inserted batch {i // batch_size + 1}: Success")
         except Exception as e:
             print(f"Error inserting batch {i // batch_size + 1}: {e}")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Request, Depends
+from fastapi import APIRouter, Request, Depends
 from core.rate_limit import limiter, RATE_LIMITS
 from services.auth import (
     sign_up,

@@ -168,7 +168,7 @@ async def update_meal_plan_status(plan_id: str, status: str) -> PlanResponse:
 async def delete_meal_plan(plan_id: str) -> PlanResponse:
     """Delete a meal plan"""
     try:
-        response = supabase_service_client.schema("nutriguard").table("meal_plans").delete().eq("id", plan_id).execute()
+        supabase_service_client.schema("nutriguard").table("meal_plans").delete().eq("id", plan_id).execute()
         return PlanResponse(
             success=True,
             message="Meal plan deleted successfully"

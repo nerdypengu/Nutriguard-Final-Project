@@ -1,7 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from uuid import uuid4
-from core.supabase import supabase_client, supabase_service_client
+from core.supabase import supabase_service_client
 
 class UserProfile(BaseModel):
     id: Optional[str] = None

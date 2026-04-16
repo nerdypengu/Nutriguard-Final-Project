@@ -149,7 +149,7 @@ async def update_log(log_id: str, log: ConsumptionLog) -> LogResponse:
 async def delete_log(log_id: str) -> LogResponse:
     """Delete a consumption log"""
     try:
-        response = supabase_service_client.schema("nutriguard").table("consumption_logs").delete().eq("id", log_id).execute()
+        supabase_service_client.schema("nutriguard").table("consumption_logs").delete().eq("id", log_id).execute()
         return LogResponse(
             success=True,
             message="Log deleted successfully"

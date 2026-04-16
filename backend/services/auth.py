@@ -1,8 +1,18 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from uuid import uuid4
+from keycloak import KeycloakOpenID
+import logging
+import time
+from jose import jwt
 from core.supabase import supabase_client, supabase_service_client
 from core.security import create_access_token, hash_password, verify_password
-from postgrest.exceptions import APIError
+from core.config import (
+    KEYCLOAK_SERVER_URL, 
+    KEYCLOAK_REALM, 
+    KEYCLOAK_CLIENT_ID, 
+    KEYCLOAK_CLIENT_SECRET,
+    SUPABASE_JWT_SECRET
+)
 
 class SignUpRequest(BaseModel):
     email: str
@@ -121,12 +131,10 @@ async def get_current_user():
     try:
         user = supabase_client.auth.get_user()
         return user
-    except Exception as e:
+    except Exception:
         return None
 
-from keycloak import KeycloakOpenID
-from core.config import KEYCLOAK_SERVER_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET
-import logging
+
 
 def get_keycloak_client():
     return KeycloakOpenID(
@@ -202,9 +210,7 @@ async def keycloak_authenticate(code: str, redirect_uri: str) -> AuthResponse:
             message=f"Keycloak authentication failed: {str(e)}"
         )
 
-import time
-from jose import jwt
-from core.config import SUPABASE_JWT_SECRET
+
 
 async def generate_supabase_realtime_token(user_id: str) -> AuthResponse:
     """Generate a custom JWT token that Supabase Realtime will accept with RLS."""

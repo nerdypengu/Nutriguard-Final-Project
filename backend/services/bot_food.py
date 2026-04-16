@@ -5,7 +5,7 @@ Retrieves food data for bot operations without user restrictions.
 from typing import List, Optional
 from pydantic import BaseModel
 from core.supabase import supabase_service_client
-from services.embeddings import generate_embedding
+
 
 
 class BotFoodResponse(BaseModel):

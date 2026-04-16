@@ -60,7 +60,7 @@ async def bot_log_consumption_endpoint(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await bot_log_consumption(log)
         return result
@@ -84,7 +84,7 @@ async def bot_get_user_logs_endpoint(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await bot_get_user_logs(user_id, limit)
         return result
@@ -108,7 +108,7 @@ async def bot_get_daily_totals_endpoint(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await bot_get_user_daily_totals(user_id, target_date)
         return result
@@ -134,7 +134,7 @@ async def bot_get_today_logs_endpoint(
     try:
         # Validate bot JWT token
         token = authorization.replace("Bearer ", "")
-        token_data = verify_bot_token(token)
+        verify_bot_token(token)
         
         result = await bot_get_today_logs(user_id)
         return result
