@@ -36,7 +36,8 @@ async def log_consumption_endpoint(
     result = await log_consumption(log)
     
     # Invalidate daily totals cache
-    await delete_cache(f"logs:totals:{log.user_id}:{log.log_date}")
+    log_date = log.logged_at.split('T')[0] if log.logged_at else date.today().isoformat()
+    await delete_cache(f"logs:totals:{log.user_id}:{log_date}")
     
     return result
 
@@ -153,7 +154,8 @@ async def update_log_endpoint(
     result = await update_log(log_id, log)
     
     # Invalidate related caches
-    await delete_cache(f"logs:totals:{log.user_id}:{log.log_date}")
+    log_date = log.logged_at.split('T')[0] if log.logged_at else date.today().isoformat()
+    await delete_cache(f"logs:totals:{log.user_id}:{log_date}")
     
     return result
 

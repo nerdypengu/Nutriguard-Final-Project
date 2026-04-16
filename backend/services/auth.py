@@ -201,3 +201,37 @@ async def keycloak_authenticate(code: str, redirect_uri: str) -> AuthResponse:
             success=False,
             message=f"Keycloak authentication failed: {str(e)}"
         )
+
+import time
+from jose import jwt
+from core.config import SUPABASE_JWT_SECRET
+
+async def generate_supabase_realtime_token(user_id: str) -> AuthResponse:
+    """Generate a custom JWT token that Supabase Realtime will accept with RLS."""
+    if not SUPABASE_JWT_SECRET:
+        return AuthResponse(
+            success=False,
+            message="SUPABASE_JWT_SECRET is not configured on the server"
+        )
+        
+    try:
+        payload = {
+            "aud": "authenticated",
+            "exp": int(time.time()) + 3600, # 1 hour
+            "sub": user_id,
+            "role": "authenticated",
+            "iss": "nutriguard-backend"
+        }
+        
+        token = jwt.encode(payload, SUPABASE_JWT_SECRET, algorithm="HS256")
+        
+        return AuthResponse(
+            success=True,
+            message="Realtime token generated",
+            access_token=token
+        )
+    except Exception as e:
+        return AuthResponse(
+            success=False,
+            message=f"Failed to generate realtime token: {str(e)}"
+        )

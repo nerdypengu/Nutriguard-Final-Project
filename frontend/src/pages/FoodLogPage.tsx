@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PlusCircle, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import { realtimeSupabase, setupRealtimeAuth } from '../utils/supabase';
 
 export default function FoodLogPage() {
   const { user } = useAuth();
@@ -28,7 +29,41 @@ export default function FoodLogPage() {
   };
 
   useEffect(() => {
+    if (!user) return;
     fetchRecentLogs();
+
+    let realtimeChannel: any = null;
+
+    const setupRealtime = async () => {
+      if (!realtimeSupabase) return;
+      
+      try {
+        const tokenRes = await api.get('/auth/realtime-token').catch(() => ({}));
+        if (tokenRes.success && tokenRes.access_token) {
+          setupRealtimeAuth(tokenRes.access_token);
+        }
+
+        realtimeChannel = realtimeSupabase.channel('foodlog-channel-logs')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'nutriguard', table: 'consumption_logs', filter: `user_id=eq.${user.id}` },
+            () => {
+              fetchRecentLogs();
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.error('Failed to setup realtime listening', err);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (realtimeChannel) {
+        realtimeSupabase.removeChannel(realtimeChannel);
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 

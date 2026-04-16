@@ -17,6 +17,7 @@ ACCESS_TOKEN_EXPIRE_TIMEDELTA = timedelta(hours=JWT_EXPIRATION_HOURS)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
 # Redis Configuration (Optional - Vercel/serverless won't have this)
 # When Redis is unavailable, the app uses in-memory fallback for caching and rate limiting

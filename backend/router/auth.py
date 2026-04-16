@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, Depends
 from core.rate_limit import limiter, RATE_LIMITS
 from services.auth import (
     sign_up,
@@ -8,8 +8,10 @@ from services.auth import (
     SignInRequest,
     AuthResponse,
     KeycloakAuthRequest,
-    keycloak_authenticate
+    keycloak_authenticate,
+    generate_supabase_realtime_token
 )
+from core.security import get_current_user, TokenData
 from services.bot_auth import authenticate_bot, BotAuthRequest, BotTokenResponse
 
 router = APIRouter(
@@ -52,6 +54,14 @@ async def keycloak_endpoint(request: Request, auth_data: KeycloakAuthRequest):
     Rate limited: 5 requests per minute
     """
     return await keycloak_authenticate(auth_data.code, auth_data.redirect_uri)
+
+@router.get("/realtime-token", response_model=AuthResponse)
+async def realtime_token_endpoint(current_user: TokenData = Depends(get_current_user)):
+    """
+    Get a short-lived custom Supabase JWT for Realtime subscriptions.
+    Requires a valid Keycloak/FastAPI JWT.
+    """
+    return await generate_supabase_realtime_token(current_user.user_id)
 
 
 @router.post("/bot/authenticate", response_model=BotTokenResponse)

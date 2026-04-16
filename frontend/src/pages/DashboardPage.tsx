@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Flame, Droplets, Dumbbell, Cookie, UtensilsCrossed, CalendarDays, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import { realtimeSupabase, setupRealtimeAuth } from '../utils/supabase';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -65,6 +66,40 @@ export default function DashboardPage() {
     };
 
     fetchDashboardData();
+
+    let realtimeChannel: any = null;
+
+    const setupRealtime = async () => {
+      if (!realtimeSupabase) return;
+      
+      try {
+        const tokenRes = await api.get('/auth/realtime-token').catch(() => ({}));
+        if (tokenRes.success && tokenRes.access_token) {
+          setupRealtimeAuth(tokenRes.access_token);
+        }
+
+        realtimeChannel = realtimeSupabase.channel('dashboard-channel-logs')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'nutriguard', table: 'consumption_logs', filter: `user_id=eq.${user.id}` },
+            () => {
+              // Whenever a log changes, refresh the dash
+              fetchDashboardData();
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.error('Failed to setup realtime listening', err);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (realtimeChannel) {
+        realtimeSupabase.removeChannel(realtimeChannel);
+      }
+    };
   }, [user]);
 
   if (loading) {
