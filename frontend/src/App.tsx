@@ -15,6 +15,7 @@ import SearchPage from './pages/SearchPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import ProfilePage from './pages/ProfilePage';
 import MealChatPage from './pages/MealChatPage';
+import MealPlansPage from './pages/MealPlansPage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             {/* Main App with Sidebar */}
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/meal-plans" element={<MealPlansPage />} />
               <Route path="/log" element={<FoodLogPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/integrations" element={<IntegrationsPage />} />

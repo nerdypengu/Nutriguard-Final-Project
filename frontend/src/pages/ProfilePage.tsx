@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { Save, User, Settings, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Save, User, Settings, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, login } = useAuth();
-  
-  // Profile state
-  const [discordId, setDiscordId] = useState('');
-  const [discordUsername, setDiscordUsername] = useState('');
   
   // Preferences state
   const [dietType, setDietType] = useState('Standard');
@@ -25,10 +21,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     
-    // Set initial user data
-    setDiscordId(user.discord_id || '');
-    setDiscordUsername(user.discord_username || '');
-
     // Fetch preferences
     api.get(`/users/${user.id}/preferences`)
       .then((res) => {
@@ -58,19 +50,7 @@ export default function ProfilePage() {
     setMessage({ type: '', text: '' });
 
     try {
-      // 1. Update Profile (Discord Info)
-      const profileRes = await api.put(`/users/${user.id}`, {
-        discord_id: discordId || null,
-        discord_username: discordUsername || null
-      });
-
-      if (!profileRes.success) throw new Error('Gagal update profile');
-
-      // Update Auth Context with new user info
-      const token = localStorage.getItem('access_token') || '';
-      login({ ...user, discord_id: discordId, discord_username: discordUsername }, token);
-
-      // 2. Update Preferences
+      // 1. Update Preferences
       const prefData = {
         diet_type: dietType,
         target_calories: Number(targetCalories),
@@ -115,40 +95,6 @@ export default function ProfilePage() {
       )}
 
       <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-8">
-        
-        {/* Profile Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 h-fit space-y-5">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-              <User className="w-6 h-6" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800">Integrasi Discord</h2>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Discord Username</label>
-            <input
-              type="text"
-              value={discordUsername}
-              onChange={(e) => setDiscordUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800"
-              placeholder="Misal: abcd#1234 atau abcd"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Discord ID</label>
-            <input
-              type="text"
-              value={discordId}
-              onChange={(e) => setDiscordId(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800"
-              placeholder="Misal: 123456789012345678"
-            />
-            <p className="text-xs text-slate-500 mt-2 hover:text-indigo-600 transition-colors">Cara mendapatkan Discord ID: Aktifkan Developer Mode di Settings Discord &gt; Klik kanan profil &gt; Copy User ID.</p>
-          </div>
-        </div>
-
         {/* Preferences Card */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-5">
            <div className="flex items-center gap-3 mb-6">

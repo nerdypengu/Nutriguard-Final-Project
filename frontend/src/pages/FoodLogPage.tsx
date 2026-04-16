@@ -109,12 +109,23 @@ export default function FoodLogPage() {
             </div>
 
             <div className="pt-4 border-t border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Makronutrisi (Opsional)</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Makronutrisi (Wajib)</h3>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 mb-4 text-sm text-emerald-800">
+                <p>
+                  Belum tahu jumlah kalori atau makronutrisi dari makanan Anda?{' '}
+                  <a href="/meal-chat" className="font-bold underline hover:text-emerald-900 transition-colors">
+                    Tanyakan pada AI kami!
+                  </a>
+                </p>
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Protein (g)</label>
                   <input
                     type="number"
+                    required
                     min="0"
                     value={protein}
                     onChange={(e) => setProtein(e.target.value)}
@@ -126,6 +137,7 @@ export default function FoodLogPage() {
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Karbo (g)</label>
                   <input
                     type="number"
+                    required
                     min="0"
                     value={carbs}
                     onChange={(e) => setCarbs(e.target.value)}
@@ -137,6 +149,7 @@ export default function FoodLogPage() {
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Lemak (g)</label>
                   <input
                     type="number"
+                    required
                     min="0"
                     value={fat}
                     onChange={(e) => setFat(e.target.value)}

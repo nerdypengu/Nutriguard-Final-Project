@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { Home, LayoutDashboard, Utensils, Search, Settings, Menu, X, LogOut, MessageSquare } from 'lucide-react';
+import { Home, LayoutDashboard, Utensils, Search, Settings, Menu, X, LogOut, MessageSquare, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
 
 const navItems = [
   { path: '/', name: 'Home', icon: Home },
   { path: '/dashboard', name: 'Dashboard', icon: LayoutDashboard },
+  { path: '/meal-plans', name: 'Rencana Makan', icon: FileText },
   { path: '/log', name: 'Catat Makanan', icon: Utensils },
   { path: '/search', name: 'Database Gizi', icon: Search },
   { path: '/profile', name: 'Profil', icon: Settings },
-  { path: '/integrations', name: 'Integrasi', icon: Settings },
+  { path: '/integrations', name: 'Discord Bot', icon: MessageSquare },
   { path: '/meal-chat', name: 'Tanya AI Kami', icon: MessageSquare },
 ];
 
@@ -17,7 +19,28 @@ export function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const [hasFailedJob, setHasFailedJob] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const checkJobs = async () => {
+      try {
+        const response = await api.get('/meal-processing/jobs?limit=5');
+        if (response && response.jobs) {
+          const failed = response.jobs.some((job: any) => job.status === 'FAILED');
+          setHasFailedJob(failed);
+        }
+      } catch (e) {
+        // Silently omit error
+      }
+    };
+
+    checkJobs();
+    const interval = setInterval(checkJobs, 15000); // Check every 15s
+    return () => clearInterval(interval);
+  }, [user, location.pathname]); // re-check when path changes so we can see updates
 
   const closeSidebar = () => setIsSidebarOpen(false);
 
@@ -59,7 +82,7 @@ export function Layout() {
                 to={item.path}
                 onClick={closeSidebar}
                 className={`
-                  flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group
+                  flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative
                   ${isActive 
                     ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 font-medium' 
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}
@@ -67,6 +90,9 @@ export function Layout() {
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500'}`} />
                 {item.name}
+                {item.path === '/meal-chat' && hasFailedJob && (
+                  <span className="absolute right-3 w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse shadow-sm shadow-rose-200"></span>
+                )}
               </NavLink>
             );
           })}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Flame, Droplets, Dumbbell, Cookie, UtensilsCrossed } from 'lucide-react';
+import { Flame, Droplets, Dumbbell, Cookie, UtensilsCrossed, CalendarDays, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
@@ -12,6 +12,7 @@ export default function DashboardPage() {
   const [totals, setTotals] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [targets, setTargets] = useState({ calories: 2000, protein: 120, carbs: 250, fat: 65 });
   const [meals, setMeals] = useState<any[]>([]);
+  const [mealPlans, setMealPlans] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -48,6 +49,14 @@ export default function DashboardPage() {
           setMeals(mealsRes.data);
         }
 
+        // Fetch Today's Meal Plans
+        const plansRes = await api.get(`/meal-plans/user/${user.id}/current`).catch(() => ({}));
+        if (plansRes.success && plansRes.plans) {
+          setMealPlans(plansRes.plans);
+        } else if (Array.isArray(plansRes)) {
+          setMealPlans(plansRes);
+        }
+
       } catch (error) {
         console.error("Failed to load dashboard data", error);
       } finally {
@@ -77,6 +86,23 @@ export default function DashboardPage() {
     if (!isoString) return '';
     const date = new Date(isoString);
     return date.toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const MEAL_TYPES_LABELS: Record<string, string> = {
+    'BREAKFAST': 'Sarapan',
+    'LUNCH': 'Makan Siang',
+    'DINNER': 'Makan Malam',
+    'SNACK': 'Cemilan'
+  };
+
+  const getBadgeStyles = (type: string) => {
+    switch (type) {
+      case 'BREAKFAST': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'LUNCH': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'DINNER': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      case 'SNACK': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+    }
   };
 
   return (
@@ -224,6 +250,46 @@ export default function DashboardPage() {
               );
             }) : (
                <li className="p-8 text-center text-slate-500">Anda belum mencatat makanan hari ini.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+      {/* Today's Meal Plans */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-slate-800 mb-4 px-1">Rencana Makan Hari Ini</h2>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <ul className="divide-y divide-slate-100">
+            {mealPlans.length > 0 ? mealPlans.map((plan) => {
+              return (
+                <li key={`plan-${plan.id}`} className="p-4 sm:px-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between group gap-4">
+                  <div className="flex items-start md:items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors shrink-0">
+                       <CalendarDays className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${getBadgeStyles(plan.meal_type)}`}>
+                            {MEAL_TYPES_LABELS[plan.meal_type] || plan.meal_type}
+                         </span>
+                      </div>
+                      <p className="font-semibold text-slate-900 leading-tight">{plan.food_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm sm:text-base ml-16 md:ml-0">
+                    <div className="hidden lg:flex items-center gap-3 text-slate-500 font-medium">
+                       <span>P: {Math.round(plan.target_protein)}g</span>
+                       <span>C: {Math.round(plan.target_carbs)}g</span>
+                       <span>F: {Math.round(plan.target_fat)}g</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-lg shrink-0">
+                      <Target className="w-4 h-4 text-slate-400" />
+                      {Math.round(plan.target_calories)} kcal target
+                    </span>
+                  </div>
+                </li>
+              );
+            }) : (
+               <li className="p-8 text-center text-slate-500">Anda belum membuat rencana makan untuk hari ini.</li>
             )}
           </ul>
         </div>
